@@ -1,0 +1,14 @@
+{
+	"name": "efficientnet-on-wasm",
+    "type": "module",
+    "scripts": {
+      "dev": "node --experimental-strip-types --experimental-transform-types --experimental-detect-module --no-warnings=ExperimentalWarning  --watch server.ts"
+    },
+	"dependencies": {
+		"@hono/node-server": "^1.14.0",
+		"hono": "^4.7.5"
+	},
+	"devDependencies": {
+		"@types/node": "^22.13.11"
+	}
+}
