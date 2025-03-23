@@ -1,5 +1,6 @@
 .DS_Store
 *.onnx
+*.txt
 node_modules/
 
 # Based on https://github.com/github/gitignore/blob/main/Rust.gitignore
