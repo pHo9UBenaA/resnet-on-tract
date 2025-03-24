@@ -1,13 +1,12 @@
 # 
 
-https://github.com/onnx/models/tree/main/validated/vision/classification/efficientnet-lite4
+https://github.com/onnx/models/tree/main/validated/vision/classification/resnet
 
 ```bash
-# EfficientNet-Lite4-int8
-curl -O https://media.githubusercontent.com/media/onnx/models/refs/heads/main/validated/vision/classification/efficientnet-lite4/model/efficientnet-lite4-11.onnx;
+curl -O https://media.githubusercontent.com/media/onnx/models/refs/heads/main/validated/vision/classification/resnet/model/resnet18-v1-7.onnx;
 
 
-curl -O https://raw.githubusercontent.com/onnx/models/refs/heads/main/validated/vision/classification/efficientnet-lite4/dependencies/labels_map.txt
+curl -O https://raw.githubusercontent.com/onnx/models/refs/heads/main/validated/vision/classification/synset.txt;
 ```
 
 ```bash

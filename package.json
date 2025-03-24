@@ -1,5 +1,5 @@
 {
-	"name": "efficientnet-on-wasm",
+	"name": "resnet-on-wasm",
     "type": "module",
     "scripts": {
       "dev": "node --experimental-strip-types --experimental-transform-types --experimental-detect-module --no-warnings=ExperimentalWarning  --watch server.ts"

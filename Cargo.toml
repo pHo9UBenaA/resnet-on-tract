@@ -1,5 +1,5 @@
 [package]
-name = "efficientnet-on-wasm"
+name = "resnet-on-wasm"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,10 +7,18 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
+base64 = "0.22.1"
 getrandom = { version = "0.2", features = ["js"] }
 image = "0.25.5"
 js-sys = "0.3.77"
 tract-onnx = "0.21.11"
-wasm-bindgen = { version ="0.2.100", features = ["serde", "serde-serialize"] }
+wasm-bindgen = { version = "0.2.100", features = ["serde", "serde-serialize"] }
 wasm-bindgen-futures = "0.4.50"
-web-sys = { version ="0.3.77", features = ['console', 'Window', 'Document', 'Request', 'RequestInit', 'Response'] }
+web-sys = { version = "0.3.77", features = [
+    'console',
+    'Window',
+    'Document',
+    'Request',
+    'RequestInit',
+    'Response',
+] }

@@ -4,10 +4,12 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::{JsFuture};
 use web_sys::{console, Request, RequestInit, Response};
 
-use image::{DynamicImage, GenericImageView, imageops::FilterType};
+use image::{imageops::FilterType, DynamicImage, GenericImageView};
 use js_sys::{Uint8Array, Float32Array};
 
 use tract_onnx::prelude::*;
+
+use base64::Engine;
 
 fn bypass_image(url: &str) -> String {
     format!("http://localhost:3000/image?url={}", url)
@@ -60,6 +62,41 @@ async fn fetch_image(url: &str) -> Result<JsValue, JsValue> {
 //     Ok(float32_array)
 // }
 
+// 224*224の画像をURLに変換し、consoleに出力
+// fn debug_image(cropped_img: &DynamicImage) {
+    
+//                  let rgb_img = cropped_img.to_rgb8();
+                
+//                  // 画像をPNGにエンコードしてbase64に変換
+//                  let mut png_data = Vec::new();
+//                  {
+//                      // 新しいバージョンのimageクレートでは、write_to_pngメソッドを使用する
+//                      rgb_img.write_to(&mut std::io::Cursor::new(&mut png_data), image::ImageFormat::Png)
+//                          .map_err(|e| JsValue::from_str(&format!("PNG encode error: {}", e)))?;
+//                  }
+                 
+//                  let base64_image = base64::engine::general_purpose::STANDARD.encode(&png_data);
+//                  let url = format!("data:image/png;base64,{}", base64_image);
+//                  console::log_1(&JsValue::from_str(&format!("画像URL: {}", url)));
+// }
+fn debug_image(cropped_img: &DynamicImage) -> Result<(), JsValue> {
+    let rgb_img = cropped_img.to_rgb8();
+    
+    // 画像をPNGにエンコードしてbase64に変換
+    let mut png_data = Vec::new();
+    {
+        // 新しいバージョンのimageクレートでは、write_to_pngメソッドを使用する
+        rgb_img.write_to(&mut std::io::Cursor::new(&mut png_data), image::ImageFormat::Png)
+            .map_err(|e| JsValue::from_str(&format!("PNG encode error: {}", e)))?;
+    }
+    
+    let base64_image = base64::engine::general_purpose::STANDARD.encode(&png_data);
+    let url = format!("data:image/png;base64,{}", base64_image);
+    console::log_1(&JsValue::from_str(&format!("画像URL: {}", url)));
+
+    Ok(())
+}
+
 fn shape_image(array_buffer: &JsValue) -> Result<Float32Array, JsValue> {
     let uint8_array = Uint8Array::new(&array_buffer);
     let image_data = uint8_array.to_vec();
@@ -68,38 +105,43 @@ fn shape_image(array_buffer: &JsValue) -> Result<Float32Array, JsValue> {
     let img = image::load_from_memory(&image_data)
         .map_err(|e| JsValue::from_str(&format!("Image decode error: {}", e)))?;
 
-    // Resize image
-    let resized_img = img.resize_exact(224, 224, FilterType::Triangle);
+    // ResNetの標準的な前処理
+    // 1. 256にリサイズ（短辺が256になるように）
+    let height = img.height();
+    let width = img.width();
+    let scale = 256.0 / height.min(width) as f32;
+    let new_height = (height as f32 * scale).round() as u32;
+    let new_width = (width as f32 * scale).round() as u32;
+    
+    let mut resized_img = img.resize_exact(new_width, new_height, FilterType::Triangle);
+    
+    // 2. 中央から224x224を切り出す
+    let h_offset = (new_height - 224) / 2;
+    let w_offset = (new_width - 224) / 2;
+    let cropped_img = resized_img.crop(w_offset, h_offset, 224, 224);
 
-    // Convert to NCHW format (1,3,224,224)
-    let mut float_data = Vec::with_capacity(1 * 3 * 224 * 224);
-    let rgb_img = resized_img.to_rgb8();
-    
-    // Channel-first order (NCHW): すべてのRチャネル、次にG、次にB
-    // Red channel
-    for y in 0..224 {
-        for x in 0..224 {
-            let pixel = rgb_img.get_pixel(x, y);
-            float_data.push(pixel[0] as f32 / 255.0);
-        }
-    }
-    
-    // Green channel
-    for y in 0..224 {
-        for x in 0..224 {
-            let pixel = rgb_img.get_pixel(x, y);
-            float_data.push(pixel[1] as f32 / 255.0);
-        }
-    }
-    
-    // Blue channel
-    for y in 0..224 {
-        for x in 0..224 {
-            let pixel = rgb_img.get_pixel(x, y);
-            float_data.push(pixel[2] as f32 / 255.0);
-        }
-    }
+    let _ = debug_image(&cropped_img);
 
+    // 3. RGB値を[0,1]の範囲に正規化し、ImageNetの平均と標準偏差で標準化
+    // ImageNetの標準的な平均と標準偏差
+    let mean = [0.485, 0.456, 0.406]; // RGB
+    let std = [0.229, 0.224, 0.225]; // RGB
+
+    // RGB画像を正規化してCHW形式のfloat配列に変換
+    let mut float_data = Vec::with_capacity(3 * 224 * 224);
+
+    // CHW形式で格納 (channel, height, width)
+    for c in 0..3 {
+        for y in 0..224 {
+            for x in 0..224 {
+                let pixel = cropped_img.get_pixel(x, y);
+                // [0,255]から[0,1]に正規化し、その後ImageNetの平均と標準偏差で標準化
+                let normalized = (pixel[c] as f32 / 255.0 - mean[c]) / std[c];
+                float_data.push(normalized);
+            }
+        }
+    }
+    
     let float32_array = Float32Array::from(float_data.as_slice());
     
     Ok(float32_array)
@@ -187,7 +229,9 @@ fn get_imagenet_labels() -> Vec<String> {
 
 #[wasm_bindgen]
 pub async fn startup() -> Result<(), JsValue> {
-    let url = bypass_image("https://gahag.net/img/201509/10s/gahag-0003126694-1.jpg");
+    // let url = bypass_image("https://gahag.net/img/201509/10s/gahag-0003126694-1.jpg");
+    // let url = bypass_image("https://teamhope-f.jp/content/images/cr/82_shiba.jpg");
+    let url = bypass_image("https://hoken.rakuten.co.jp/uploads/img/column/pet/welsh-corgi-pembroke/img_contents-02.jpeg");
 
     let array_buffer = fetch_image(&url).await?;
     let shaped_image = shape_image(&array_buffer)?;
