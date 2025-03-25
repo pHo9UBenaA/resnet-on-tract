@@ -10,9 +10,9 @@ curl -O https://raw.githubusercontent.com/onnx/models/refs/heads/main/validated/
 ```
 
 ```bash
-RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --target no-modules
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --release --target no-modules
 ```
 
 ```bash
-RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --release --chrome
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --release --chrome --headless 
 ```

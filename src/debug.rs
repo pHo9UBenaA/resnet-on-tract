@@ -3,7 +3,8 @@ use web_sys::console;
 use image::DynamicImage;
 use base64::Engine;
 
-pub fn debug_image(cropped_img: &DynamicImage) -> Result<(), JsValue> {
+#[allow(dead_code)] // テストを動作させることを目的に常にモジュールを宣言するため
+pub fn dynamic_image_to_base64(cropped_img: &DynamicImage) -> Result<(), JsValue> {
     let rgb_img = cropped_img.to_rgb8();
     
     // 画像をPNGにエンコードしてbase64に変換
@@ -24,13 +25,13 @@ pub fn debug_image(cropped_img: &DynamicImage) -> Result<(), JsValue> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use image::{RgbImage, ImageBuffer};
+    use image::{ImageBuffer};
     use wasm_bindgen_test::*;
 
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[wasm_bindgen_test]
-    fn test_debug_image() {
+    fn test_dynamic_image_to_base64() {
         // テスト用の小さな画像を作成
         let img_buffer: ImageBuffer<image::Rgb<u8>, Vec<u8>> = ImageBuffer::from_fn(10, 10, |x, y| {
             // 簡単なパターンを生成
@@ -43,14 +44,14 @@ mod tests {
         
         let dynamic_img = DynamicImage::ImageRgb8(img_buffer);
         
-        let result = debug_image(&dynamic_img);
+        let result = dynamic_image_to_base64(&dynamic_img);
         
         assert!(result.is_ok());
     }
 
     #[wasm_bindgen_test]
-    fn test_debug_image_error() {
-        let result = debug_image(&DynamicImage::ImageRgb8(ImageBuffer::new(0, 0)));
+    fn test_dynamic_image_to_base64_error() {
+        let result = dynamic_image_to_base64(&DynamicImage::ImageRgb8(ImageBuffer::new(0, 0)));
         assert!(result.is_err());
     }
 }
