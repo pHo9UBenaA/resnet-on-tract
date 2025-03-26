@@ -9,7 +9,7 @@ type InferResultWithLabels = Vec<(String, f32)>;
 pub fn infer_top5(shaped_image: &Float32Array) -> Result<InferResultWithLabels, JsValue> {
     let model = model_load()?;
 
-    let scores = model_run(&model, &shaped_image)?;
+    let scores = model_run(&model, shaped_image)?;
 
     let labels = load_labels()?;
 

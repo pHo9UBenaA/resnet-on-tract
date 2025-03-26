@@ -15,7 +15,7 @@ pub async fn startup() -> Result<(), JsValue> {
     // let url = bypass_image("https://teamhope-f.jp/content/images/cr/82_shiba.jpg");
     let url = "https://hoken.rakuten.co.jp/uploads/img/column/pet/welsh-corgi-pembroke/img_contents-02.jpeg";
 
-    let shaped_image = image::fetch_shaped_image(&url).await?;
+    let shaped_image = image::fetch_shaped_image(url).await?;
 
     let top5 = model::infer_top5(&shaped_image)?;
 

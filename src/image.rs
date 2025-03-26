@@ -27,7 +27,7 @@ async fn fetch_image(image_url: &str) -> Result<JsValue, JsValue> {
 }
 
 fn shape_image(array_buffer: &JsValue) -> Result<Float32Array, JsValue> {
-    let image_data = Uint8Array::new(&array_buffer).to_vec();
+    let image_data = Uint8Array::new(array_buffer).to_vec();
 
     // Decode image using `image` crate
     let img = image::load_from_memory(&image_data)
