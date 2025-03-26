@@ -63,16 +63,20 @@ fn preprocess_image(img: &DynamicImage) -> Result<Float32Array, JsValue> {
     let mean = [0.485, 0.456, 0.406]; // RGB
     let std = [0.229, 0.224, 0.225]; // RGB
 
-    let float_data: Vec<f32> = cropped_img
+    let mut float_data = vec![0.0; 3 * 224 * 224];
+    let c_offset = 224 * 224;
+
+    cropped_img
         .to_rgb8()
-        .enumerate_pixels()
-        .flat_map(|(_, _, pixel)| {
-            [0, 1, 2].map(|c| {
-                let pixel_val = pixel[c] as f32 / 255.0;
-                (pixel_val - mean[c]) / std[c]
-            })
-        })
-        .collect();
+        .as_raw()
+        .chunks_exact(3)
+        .enumerate()
+        .for_each(|(i, pixel)| {
+            // CHWフォーマットで格納
+            float_data[i] = (pixel[0] as f32 / 255.0 - mean[0]) / std[0]; // R
+            float_data[c_offset + i] = (pixel[1] as f32 / 255.0 - mean[1]) / std[1]; // G
+            float_data[2 * c_offset + i] = (pixel[2] as f32 / 255.0 - mean[2]) / std[2];
+        });
 
     let float32_array = Float32Array::from(float_data.as_slice());
 
