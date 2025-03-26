@@ -10,25 +10,27 @@ mod model;
 mod debug;
 
 #[wasm_bindgen]
-pub async fn startup() -> Result<(), JsValue> {
-    // let url = bypass_image("https://gahag.net/img/201509/10s/gahag-0003126694-1.jpg");
-    // let url = bypass_image("https://teamhope-f.jp/content/images/cr/82_shiba.jpg");
-    let url = "https://hoken.rakuten.co.jp/uploads/img/column/pet/welsh-corgi-pembroke/img_contents-02.jpeg";
-
+pub async fn analyze_image(url: &str) -> Result<JsValue, JsValue> {
     let shaped_image = image::fetch_shaped_image(url).await?;
 
-    let top5 = model::infer_top5(&shaped_image)?;
+    let result = model::infer_top5(&shaped_image)?;
 
-    let top5_str = top5
+    Ok(convert_to_js_value(&result))
+}
+
+fn convert_to_js_value(result: &model::InferResultWithLabels) -> JsValue {
+    let predictions = result
         .iter()
-        .map(|(label, score)| format!("{}: {}", label, score))
-        .collect::<Vec<String>>()
-        .join("\n");
+        .enumerate()
+        .map(|(index, (label, score))| {
+            serde_json::json!({
+                "label": label,
+                "score": score,
+                "rank": index + 1
+            })
+        })
+        .collect::<Vec<_>>();
 
-    console::log_1(&JsValue::from_str(&format!(
-        "Top 5 predictions:\n{}",
-        top5_str
-    )));
-
-    Ok(())
+    let output = serde_json::to_string(&predictions).unwrap();
+    JsValue::from_str(&output)
 }

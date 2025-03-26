@@ -1286,6 +1286,7 @@ dependencies = [
  "getrandom",
  "image",
  "js-sys",
+ "serde_json",
  "tract-onnx",
  "wasm-bindgen",
  "wasm-bindgen-futures",

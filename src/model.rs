@@ -4,9 +4,10 @@ use wasm_bindgen::prelude::*;
 type TractModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
 type InferResult = Vec<(usize, f32)>;
-type InferResultWithLabels = Vec<(String, f32)>;
+pub type InferResultWithLabels = Vec<(String, f32)>;
 
 pub fn infer_top5(shaped_image: &Float32Array) -> Result<InferResultWithLabels, JsValue> {
+    // TODO: ラベルとモデルを事前にstartupで読み込んでおくようにする
     let model = model_load()?;
 
     let scores = model_run(&model, shaped_image)?;
