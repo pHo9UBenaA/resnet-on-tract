@@ -1,5 +1,5 @@
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
 use web_sys::console;
 
 mod image;
@@ -19,13 +19,16 @@ pub async fn startup() -> Result<(), JsValue> {
 
     let top5 = model::infer_top5(&shaped_image)?;
 
-    let top5_str = top5.iter()
+    let top5_str = top5
+        .iter()
         .map(|(label, score)| format!("{}: {}", label, score))
         .collect::<Vec<String>>()
         .join("\n");
 
-    console::log_1(&JsValue::from_str(&format!("Top 5 predictions:\n{}", top5_str)));
+    console::log_1(&JsValue::from_str(&format!(
+        "Top 5 predictions:\n{}",
+        top5_str
+    )));
 
     Ok(())
 }
-

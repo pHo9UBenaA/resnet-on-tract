@@ -1,6 +1,6 @@
-use wasm_bindgen::{JsValue, JsCast};
-use js_sys::{Uint8Array, Float32Array};
-use image::{imageops::FilterType, DynamicImage};
+use image::{DynamicImage, imageops::FilterType};
+use js_sys::{Float32Array, Uint8Array};
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
@@ -11,18 +11,18 @@ pub async fn fetch_shaped_image(image_url: &str) -> Result<Float32Array, JsValue
 
 async fn fetch_image(image_url: &str) -> Result<JsValue, JsValue> {
     let bypass_url = bypass_image_url(image_url);
-    
+
     let options = RequestInit::new();
     options.set_method("GET");
-    
+
     let request = Request::new_with_str_and_init(&bypass_url, &options).unwrap();
-    
+
     let window = web_sys::window().unwrap();
     let response_value = JsFuture::from(window.fetch_with_request(&request)).await?;
-    
+
     let response = response_value.dyn_into::<Response>()?;
     let array_buffer = JsFuture::from(response.array_buffer()?).await?;
-    
+
     Ok(array_buffer)
 }
 
@@ -34,7 +34,7 @@ fn shape_image(array_buffer: &JsValue) -> Result<Float32Array, JsValue> {
         .map_err(|e| JsValue::from_str(&format!("Image decode error: {}", e)))?;
 
     let shaped_data = preprocess_image(&img)?;
-    
+
     Ok(shaped_data)
 }
 
@@ -50,9 +50,9 @@ fn preprocess_image(img: &DynamicImage) -> Result<Float32Array, JsValue> {
     let scale = 256.0 / height.min(width) as f32;
     let new_height = (height as f32 * scale).round() as u32;
     let new_width = (width as f32 * scale).round() as u32;
-    
+
     let mut resized_img = img.resize_exact(new_width, new_height, FilterType::Triangle);
-    
+
     // 2. 中央から224x224を切り出す
     let h_offset = (new_height - 224) / 2;
     let w_offset = (new_width - 224) / 2;
@@ -73,17 +73,17 @@ fn preprocess_image(img: &DynamicImage) -> Result<Float32Array, JsValue> {
             })
         })
         .collect();
-    
+
     let float32_array = Float32Array::from(float_data.as_slice());
-    
+
     Ok(float32_array)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use image::ImageBuffer;
     use wasm_bindgen_test::*;
-    use image::{ImageBuffer};
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -99,12 +99,11 @@ mod tests {
     //     let shaped_data = shape_image(&array_buffer);
 
     //     assert!(shaped_data.is_ok());
-        
+
     // }
 
     #[wasm_bindgen_test]
     fn test_preprocess_image() {
-        // テスト用の画像データを直接生成
         let img = DynamicImage::ImageRgb8(ImageBuffer::from_fn(300, 300, |x, y| {
             if (x + y) % 2 == 0 {
                 image::Rgb([255, 0, 0])
@@ -112,12 +111,11 @@ mod tests {
                 image::Rgb([0, 0, 255])
             }
         }));
-        
-        // 直接preprocess_image関数をテスト
+
         let result = preprocess_image(&img);
-        
+
         assert!(result.is_ok());
-        
+
         let float_array = result.unwrap();
         // 224x224x3 = 150528 の要素数を確認
         assert_eq!(float_array.length(), 150528);
