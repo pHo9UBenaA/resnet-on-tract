@@ -1,5 +1,8 @@
 [package]
 name = "resnet-on-wasm"
+description = "Resnet on Wasm"
+repository = "https://github.com/pHo9UBenaA/resnet-on-wasm"
+license = "MIT"
 version = "0.1.0"
 edition = "2024"
 
