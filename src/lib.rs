@@ -1,6 +1,5 @@
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
-use web_sys::console;
 
 mod image;
 mod model;
@@ -33,4 +32,35 @@ fn convert_to_js_value(result: &model::InferResultWithLabels) -> JsValue {
 
     let output = serde_json::to_string(&predictions).unwrap();
     JsValue::from_str(&output)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wasm_bindgen_test::*;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test]
+    fn test_convert_to_js_value() {
+        let result: model::InferResultWithLabels = vec![
+            ("猫".to_string(), 0.95),
+            ("犬".to_string(), 0.80),
+            ("鳥".to_string(), 0.60)
+        ];
+
+        let js_value = convert_to_js_value(&result);
+        let result_str = js_value.as_string().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&result_str).unwrap();
+        
+        assert!(parsed.is_array());
+        let array = parsed.as_array().unwrap();
+        
+        assert_eq!(array.len(), 3);
+
+        assert_eq!(array[0]["label"], "猫");
+        // 浮動小数点は厳密な等価比較ができないため、許容誤差内(1e-6)での比較を実施
+        assert!((array[0]["score"].as_f64().unwrap() - 0.95).abs() < 1e-6);
+        assert_eq!(array[0]["rank"], 1);
+    }
 }
