@@ -14,14 +14,15 @@ curl -O https://raw.githubusercontent.com/onnx/models/refs/heads/main/validated/
 
 ## 開発コマンド
 
-### Wasm関連
-
+### Wasmビルド
 ```bash
-# Wasmビルド
 RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --release --target no-modules
+```
 
-# Wasmテスト
+### Wasmテスト
+```bash
 RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --release --chrome --headless 
+```
 
 ### 開発サーバー起動
 
