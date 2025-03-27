@@ -1,31 +1,40 @@
-const { analyze_image } = wasm_bindgen;
+const { analyze_image: analyzeImageOnWasm } = wasm_bindgen;
 
 async function init() {
 	await wasm_bindgen();
-	form_init();
+	formInit();
 }
 
-function form_init() {
+function updateHTML(status, result) {
+	const inferStatus = document.getElementById("infer-status");
+	const resultList = document.getElementById("result-list");
+	inferStatus.textContent = status;
+	resultList.innerHTML = result;
+}
+
+function formInit() {
 	const form = document.getElementById("url-form");
-	const resultContainer = document.getElementById("result-container");
 
 	form.addEventListener("submit", async (event) => {
-		resultContainer.textContent = "分析中...";
+		updateHTML("推論中...", "");
 
 		event.preventDefault();
 		const url = document.getElementById("image-url").value;
 
 		try {
 			// string: [{ label: string, score: number, rank: number }, ...]
-			const top5 = await analyze_image(url);
+			const top5 = await analyzeImageOnWasm(url);
 
-			resultContainer.innerHTML = JSON.parse(top5)
+			updateHTML("推論完了", JSON.parse(top5)
 				.map((item) => {
 					return `<li>${item.label}: ${item.score}</li>`;
 				})
-				.join("");
+				.join("")
+			);
 		} catch (error) {
-			resultContainer.textContent = "分析に失敗しました";
+			console.error(error);
+
+			updateHTML("推論失敗", "");
 		}
 	});
 }
