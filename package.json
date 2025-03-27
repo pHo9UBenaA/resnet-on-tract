@@ -6,7 +6,10 @@
 		"format": "biome format --write ./",
 		"lint": "biome lint --write ./",
 		"check": "biome check --write ./",
-		"ci": "biome ci ./"
+		"ci": "biome ci ./",
+		"cargo:format": "cargo fmt",
+		"cargo:lint": "cargo clippy --release --fix --allow-dirty",
+		"cargo:check": "cargo check --release"
 	},
 	"dependencies": {
 		"@biomejs/biome": "2.0.0-beta.1",

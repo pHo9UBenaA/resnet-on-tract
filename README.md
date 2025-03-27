@@ -22,15 +22,6 @@ RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack build --release --target
 
 # Wasmテスト
 RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --release --chrome --headless 
-```
-
-### コード検証
-
-```bash
-cargo check --release;
-cargo fmt --check;
-cargo clippy --release;
-```
 
 ### 開発サーバー起動
 
