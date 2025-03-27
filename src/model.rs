@@ -1,6 +1,7 @@
 use js_sys::Float32Array;
 use tract_onnx::prelude::*;
 use wasm_bindgen::prelude::*;
+
 type TractModel = SimplePlan<TypedFact, Box<dyn TypedOp>, Graph<TypedFact, Box<dyn TypedOp>>>;
 
 type InferResult = Vec<(usize, f32)>;
@@ -104,12 +105,14 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_model_load() {
         let result = model_load();
         assert!(result.is_ok())
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_load_labels() {
         let result = load_labels();
         assert!(result.is_ok());
@@ -120,6 +123,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_model_run() {
         let model = model_load().unwrap();
         let input = create_test_input();
@@ -138,6 +142,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_infer_top5() {
         let input = create_test_input();
 
@@ -156,14 +161,16 @@ mod tests {
 
         // スコアがソートされていることを確認
         for i in 0..top5.len() - 1 {
-            assert!(
-                top5[i].1 >= top5[i + 1].1,
-                "トップ5のスコアが降順ソートされていない"
-            );
+            assert!(top5[i].1 >= top5[i + 1].1);
         }
+
+        // TODO: スコア自体もテストする
+        // その場合`create_test_input`ではなく、preprocess_imageを噛ませてテストするように修正
+        // →imageモジュールではなく、fetch系に責任を持つモジュールに作りかえ、preprocess_imageなどの前処理はmodelに移植した方がいいかも
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_error_handling() {
         // 明らかに小さすぎる
         let small_buffer = Float32Array::new_with_length(10);

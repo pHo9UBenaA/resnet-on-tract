@@ -92,6 +92,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     // #[wasm_bindgen_test]
+    // #[allow(dead_code)]
     // async fn test_fetch_image() {
     //     let test_url = "https://images.google.com/images/branding/googlelogo/2x/googlelogo_light_color_272x92dp.png";
 
@@ -107,6 +108,7 @@ mod tests {
     // }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_preprocess_image() {
         let img = DynamicImage::ImageRgb8(ImageBuffer::from_fn(300, 300, |x, y| {
             if (x + y) % 2 == 0 {
@@ -126,6 +128,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_bypass_image_url() {
         let original_url = "https://example.com/image.jpg";
         let expected = "http://localhost:3000/image?url=https://example.com/image.jpg";

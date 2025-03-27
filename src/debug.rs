@@ -35,6 +35,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_dynamic_image_to_base64() {
         // テスト用の小さな画像を作成
         let img_buffer: ImageBuffer<image::Rgb<u8>, Vec<u8>> =
@@ -55,6 +56,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_dynamic_image_to_base64_error() {
         let result = dynamic_image_to_base64(&DynamicImage::ImageRgb8(ImageBuffer::new(0, 0)));
         assert!(result.is_err());

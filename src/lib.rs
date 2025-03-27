@@ -41,21 +41,30 @@ mod tests {
 
     wasm_bindgen_test_configure!(run_in_browser);
 
+    // #[wasm_bindgen_test]
+    // #[allow(dead_code)]
+    // async fn test_analyze_image() {
+    //     let url = "https://wantimes.leoandlea.com/static/87016e3dfe93fa9ea21268225ffe8cc9/b8f0a/a2f618f8-802e-43a6-b902-39b03e3ffc6d_breedswelsh-corgi-pembroke.jpg";
+    //     let result = analyze_image(url).await;
+    //     assert!(result.is_ok());
+    // }
+
     #[wasm_bindgen_test]
+    #[allow(dead_code)]
     fn test_convert_to_js_value() {
         let result: model::InferResultWithLabels = vec![
             ("猫".to_string(), 0.95),
             ("犬".to_string(), 0.80),
-            ("鳥".to_string(), 0.60)
+            ("鳥".to_string(), 0.60),
         ];
 
         let js_value = convert_to_js_value(&result);
         let result_str = js_value.as_string().unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&result_str).unwrap();
-        
+
         assert!(parsed.is_array());
         let array = parsed.as_array().unwrap();
-        
+
         assert_eq!(array.len(), 3);
 
         assert_eq!(array[0]["label"], "猫");
