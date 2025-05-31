@@ -15,12 +15,28 @@ async fn fetch_image(image_url: &str) -> Result<JsValue, JsValue> {
     let options = RequestInit::new();
     options.set_method("GET");
 
-    let request = Request::new_with_str_and_init(&bypass_url, &options).unwrap();
+    let request = Request::new_with_str_and_init(&bypass_url, &options)
+        .map_err(|e| JsValue::from_str(&format!("Failed to create request: {:?}", e)))?;
 
-    let window = web_sys::window().unwrap();
-    let response_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    // Worker環境でのfetch処理
+    let global = js_sys::global();
+    let fetch_promise = if let Ok(worker_scope) = global.clone().dyn_into::<web_sys::DedicatedWorkerGlobalScope>() {
+        // Worker環境
+        worker_scope.fetch_with_request(&request)
+    } else if let Ok(window) = global.dyn_into::<web_sys::Window>() {
+        // メインスレッド環境
+        window.fetch_with_request(&request)
+    } else {
+        return Err(JsValue::from_str("Unsupported environment"));
+    };
 
+    let response_value = JsFuture::from(fetch_promise).await?;
     let response = response_value.dyn_into::<Response>()?;
+    
+    if !response.ok() {
+        return Err(JsValue::from_str(&format!("HTTP error: {}", response.status())));
+    }
+    
     let array_buffer = JsFuture::from(response.array_buffer()?).await?;
 
     Ok(array_buffer)

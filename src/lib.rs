@@ -1,5 +1,6 @@
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
+use web_sys::{MessageEvent, DedicatedWorkerGlobalScope};
 
 mod image;
 mod model;
@@ -8,13 +9,63 @@ mod model;
 // see: https://rustwasm.github.io/wasm-bindgen/wasm-bindgen-test/usage.html#:~:text=One%20other%20difference%20is%20that%20the%20tests%20must%20be%20in%20the%20root%20of%20the%20crate%2C%20or%20within%20a%20pub%20mod.%20Putting%20them%20inside%20a%20private%20module%20will%20not%20work.
 mod debug;
 
+// メインスレッド用：Workerを起動する
 #[wasm_bindgen]
-pub async fn analyze_image(url: &str) -> Result<JsValue, JsValue> {
-    let shaped_image = image::fetch_shaped_image(url).await?;
+pub fn startup() {
+    console_error_panic_hook::set_once();
+    web_sys::console::log_1(&"Main thread started".into());
+}
 
-    let result = model::infer_top5(&shaped_image)?;
+// Worker用：実際の推論処理
+#[wasm_bindgen]
+pub struct ImageAnalyzer;
 
-    Ok(convert_to_js_value(&result))
+#[wasm_bindgen]
+impl ImageAnalyzer {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> ImageAnalyzer {
+        console_error_panic_hook::set_once();
+        ImageAnalyzer
+    }
+
+    #[wasm_bindgen]
+    pub async fn analyze_image(&self, url: &str) -> Result<JsValue, JsValue> {
+        let shaped_image = image::fetch_shaped_image(url).await?;
+        let result = model::infer_top5(&shaped_image)?;
+        Ok(convert_to_js_value(&result))
+    }
+}
+
+// Worker内でのメッセージハンドリング用
+#[wasm_bindgen]
+pub fn setup_worker_message_handler() {
+    let callback = Closure::wrap(Box::new(move |event: MessageEvent| {
+        let data = event.data();
+        
+        if let Some(url) = data.as_string() {
+            wasm_bindgen_futures::spawn_local(async move {
+                let analyzer = ImageAnalyzer::new();
+                match analyzer.analyze_image(&url).await {
+                    Ok(result) => {
+                        let scope = js_sys::global().unchecked_into::<DedicatedWorkerGlobalScope>();
+                        if let Err(_) = scope.post_message(&result) {
+                            web_sys::console::error_1(&"Failed to post message".into());
+                        }
+                    }
+                    Err(error) => {
+                        let scope = js_sys::global().unchecked_into::<DedicatedWorkerGlobalScope>();
+                        if let Err(_) = scope.post_message(&error) {
+                            web_sys::console::error_1(&"Failed to post error message".into());
+                        }
+                    }
+                }
+            });
+        }
+    }) as Box<dyn FnMut(MessageEvent)>);
+    
+    let scope = js_sys::global().unchecked_into::<DedicatedWorkerGlobalScope>();
+    scope.set_onmessage(Some(callback.as_ref().unchecked_ref()));
+    callback.forget();
 }
 
 fn convert_to_js_value(result: &model::InferResultWithLabels) -> JsValue {
