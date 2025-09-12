@@ -13,10 +13,10 @@ importers:
         version: 2.0.0-beta.1
       '@hono/node-server':
         specifier: ^1.14.0
-        version: 1.14.0(hono@4.7.5)
+        version: 1.14.0(hono@4.9.7)
       hono:
-        specifier: ^4.7.5
-        version: 4.7.5
+        specifier: ^4.9.7
+        version: 4.9.7
     devDependencies:
       '@types/node':
         specifier: ^22.13.11
@@ -86,8 +86,8 @@ packages:
   '@types/node@22.13.11':
     resolution: {integrity: sha512-iEUCUJoU0i3VnrCmgoWCXttklWcvoCIx4jzcP22fioIVSdTmjgoEvmAO/QPw6TcS9k5FrNgn4w7q5lGOd1CT5g==}
 
-  hono@4.7.5:
-    resolution: {integrity: sha512-fDOK5W2C1vZACsgLONigdZTRZxuBqFtcKh7bUQ5cVSbwI2RWjloJDcgFOVzbQrlI6pCmhlTsVYZ7zpLj4m4qMQ==}
+  hono@4.9.7:
+    resolution: {integrity: sha512-t4Te6ERzIaC48W3x4hJmBwgNlLhmiEdEE5ViYb02ffw4ignHNHa5IBtPjmbKstmtKa8X6C35iWwK4HaqvrzG9w==}
     engines: {node: '>=16.9.0'}
 
   undici-types@6.20.0:
@@ -130,14 +130,14 @@ snapshots:
   '@biomejs/cli-win32-x64@2.0.0-beta.1':
     optional: true
 
-  '@hono/node-server@1.14.0(hono@4.7.5)':
+  '@hono/node-server@1.14.0(hono@4.9.7)':
     dependencies:
-      hono: 4.7.5
+      hono: 4.9.7
 
   '@types/node@22.13.11':
     dependencies:
       undici-types: 6.20.0
 
-  hono@4.7.5: {}
+  hono@4.9.7: {}
 
   undici-types@6.20.0: {}
